@@ -14,6 +14,9 @@ Move into the source folder and run the following command in the terminal
 
 > python app.py
 
+### Access the API in the following link
+
+> http://localhost:8080/ajiranet/process
 
 ## To run Unit Test
 Move into the source folder and run the following command in the terminal
