@@ -403,9 +403,10 @@ for testcase in testcases:
     print("\n-----------------------------------------\n\n")
     
     print(testcase['info'], end="\n\n")
-    os.system('echo "## {}\n\n" >> testcases.md'.format(testcase['info']))
+    # os.system('echo "## {}\n\n" >> testcases.md'.format(testcase['info']))
     print('Command: \n' + testcase['command'], end="\n\n")
-    os.system('echo "{}\n\n" >> testcases.md '.format(testcase['command']))
+    print("Response:\n\n")
+    # os.system('echo "{}\n\n" >> testcases.md '.format(testcase['command']))
     os.system(testcase['command'])
     
     print("\n-----------------------------------------\n\n")

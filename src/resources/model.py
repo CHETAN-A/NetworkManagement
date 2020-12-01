@@ -1,3 +1,6 @@
+
+device_name_regex = r'^[A-Za-z_]\w+$'
+
 class NetworkDeviceManager:
     def __init__(self):
         super().__init__()
@@ -9,6 +12,16 @@ class NetworkDeviceManager:
             'strength': 0,
             'connections': set()
         }
+
+    def isNodePresent(self, name):
+        if name in self.nodes:
+            return True
+        return False
+
+    def isNodeOfType(self, node, nodeType):
+        if self.nodes[node]['type'] == nodeType:
+            return True
+        return False
 
     def getNodes(self):
         nodesList = []
@@ -22,6 +35,11 @@ class NetworkDeviceManager:
     def addConnection(self, node1, node2):
         self.nodes[node1]['connections'].add(node2)
         self.nodes[node2]['connections'].add(node1)
+
+    def areNodesConnected(self, node1, node2):
+        if node1 in self.nodes[node2]['connections']:
+            return True
+        return False
 
     def updateStrength(self, node, value):
         self.nodes[node]['strength'] = value

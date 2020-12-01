@@ -50,6 +50,13 @@ testcases = [
         "status": 200
     },
     {
+        "command": "CREATE /devic\ncontent-type : application/json\n\n{\"type\" : \"COMPUTER\", \"name\" : \"A6\"}",
+        "response": {
+            "msg": "Invalid Command"
+        },
+        "status": 400
+    },
+    {
         "command": "CREATE /devices\ncontent-type : application/json\n\n{\"type\" : \"COMPUTER\", \"name\" : \"1A1\"}",
         "response": {
             "msg": "Device '1A1' name is not valid"
@@ -122,14 +129,14 @@ testcases = [
     {
         "command": "CREATE /connections \ncontent-type : application/json\n \n{\"source\" : [], \"targets\": [\"A2\"]}",
         "response": {
-            "msg": "Invalid source type"
+            "msg": "Device '[]' name is not valid"
         },
         "status": 400
     },
     {
         "command": "CREATE /connections \ncontent-type : application/json\n \n{\"source\" : \"1a\", \"targets\": [\"A2\"]}",
         "response": {
-            "msg": "Invalid source type"
+            "msg": "Device '1a' name is not valid"
         },
         "status": 400
     },
@@ -143,21 +150,21 @@ testcases = [
     {
         "command": "CREATE /connections \ncontent-type : application/json\n \n{\"source\" : \"A1\", \"targets\": [\"A2\",7]}",
         "response": {
-            "msg": "Invalid targets type"
+            "msg": "Device '7' name is not valid"
         },
         "status": 400
     },
     {
         "command": "CREATE /connections \ncontent-type : application/json\n \n{\"source\" : \"A1\", \"targets\": [\"A2\", \"4R\"]}",
         "response": {
-            "msg": "Invalid targets type"
+            "msg": "Device '4R' name is not valid"
         },
         "status": 400
     },
     {
         "command": "CREATE /connections \ncontent-type : application/json\n \n{\"source\" : \"A1\", \"targets\": [\"A4\", \"A9\"]}",
         "response": {
-            "msg": "Device(s) in targets is not found"
+            "msg": "Device 'A9' not found"
         },
         "status": 400
     },

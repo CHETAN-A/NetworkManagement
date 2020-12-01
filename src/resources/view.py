@@ -1,11 +1,11 @@
 from flask import current_app
 from collections import deque
 
+from .validations import NetworkValidation, ValidationError
+
 import re
-# print(('args', args), ('kwargs', kwargs))
 
-device_name_regex = r'^[A-Za-z_]\w+$'
-
+validator = NetworkValidation()
 
 class Devices:
 
@@ -31,14 +31,8 @@ class Devices:
         network = current_app.config['network']
 
         # Data Validations
-        if requestData['type'] not in ('COMPUTER', 'REPEATER'):
-            return response("type '{}' is not supported".format(requestData['type']), 400)
-
-        elif requestData['name'] in network.nodes:
-            return response("Device '{}' already exists".format(requestData['name']), 400)
-
-        elif not re.search(device_name_regex, requestData['name']):
-            return response("Device '{}' name is not valid".format(requestData['name']), 400)
+        requestData['isAbsent'] = requestData['name']
+        validator.validate(**requestData)
 
         # Add the device into the network nodes list
         network.addNode(requestData['name'], requestData['type'])
@@ -57,14 +51,8 @@ class Devices:
         network = current_app.config['network']
         
         # Data Validations
-        if node not in network.nodes:
-            return {
-                "msg": "Device '{}' not found".format(node)
-            }, 400
-        elif not isinstance(requestData['value'], int) or requestData['value'] < 0:
-            return {
-                "msg": "value should be an +ve integer"
-            }, 400
+        requestData['isPresent'] = node
+        validator.validate(**requestData)
 
         # update the strength of the device node
         network.updateStrength(node, requestData['value'])
@@ -90,29 +78,21 @@ class Connections:
 
         # Data Validations
         # To check if source type and pattern is valid
-        if not isinstance(source, str) or\
-            not re.search(device_name_regex, source):
-            return response("Invalid source type", 400)
-        
+        if not isinstance(targets, list):
+            raise ValidationError("Invalid targets type", 400)
+        validator.validate_name(source)
+        validator.validate_is_node_present(source)
+
         # To check if target nodes type and pattern is valid
-        elif not isinstance(targets, list) or\
-            any(map(lambda inp: not isinstance(inp, str), targets)) or\
-            any(map(lambda inp: not re.search(device_name_regex, inp), targets)):
-            return response("Invalid targets type", 400)
-        
-        # To check if source is present in network nodes list
-        elif source not in network.nodes:
-            return response("Device '{}' not found".format(source), 400)
-        
-        # To check if target nodes are present in network nodes list
-        elif any(map(lambda inp: inp not in network.nodes, targets)):
-            return response("Device(s) in targets is not found", 400)
+        for target in targets:
+            validator.validate_name(target)
+            validator.validate_is_node_present(target)
         
         validTargetNodes = set()
         for node in targets:
             if source == node:
                 return response("Cannot connect device to itself", 400)
-            elif source not in network.nodes[node]['connections']:
+            elif not network.areNodesConnected(source, node):
                 validTargetNodes.add(node)
             else:
                 return response("Devices {} and {} are already connected".format(source, node), 400)
@@ -129,11 +109,11 @@ class Routes:
         """
         # Validating Request Query Parameters
         if not isinstance(args, tuple) or not isinstance(args[0], str):
-            return response('Invalid Request', 400)
+            raise ValidationError('Invalid Request', 400)
                 
         matcher = re.search(r'^from=(?P<source>[A-Za-z_]\w+)&to=(?P<target>[A-Za-z_]\w+)$', args[0])
         if not matcher:
-            return response('Invalid Request', 400)
+            raise ValidationError('Invalid Request', 400)
 
         queryParams = matcher.groupdict()
         source, target = queryParams['source'], queryParams['target']
@@ -142,23 +122,16 @@ class Routes:
         network = current_app.config['network']
 
         # Validating source and target nodes
-        if source not in network.nodes:
-            return response("Device '{}' not found".format(source), 400)
-        elif target not in network.nodes:
-            return response("Device '{}' not found".format(target), 400)
-        elif network.nodes[source]['type'] != 'COMPUTER' or network.nodes[target]['type'] != 'COMPUTER':
-            return response("Route cannot be calculated with repeater", 400)
+        for node in (source, target):
+            validator.validate_is_node_present(node)
 
-        # find shortest path between source and target node
+        if not network.isNodeOfType(source, 'COMPUTER') or not network.isNodeOfType(target, 'COMPUTER'):
+            raise ValidationError("Route cannot be calculated with repeater", 400)
+
+        # find route between source and target node
         route = network.findRoute(source, target)
 
-        if route:
-            return response("Route is {}".format('->'.join(route)), 200)
-        # if no route found return the same msg
-        else: 
-            return response('Route not found', 400)
-
-
+        return response("Route is {}".format('->'.join(route)), 200) if route else response('Route not found', 400)
 
 
 def response(message, status):
