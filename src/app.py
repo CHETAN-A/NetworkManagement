@@ -10,7 +10,7 @@ from resources.utils import ( clean_str, response,
 
 import os
 
-class AjiraNet(Resource):
+class NetworkManager(Resource):
 
     def post(self):
         # print(request.get_data(as_text=True))
@@ -61,7 +61,7 @@ app = Flask(__name__)
 api = Api(app)
 app.config["BASE_DIR"] = os.path.dirname(os.path.abspath(__file__))
 
-api.add_resource(AjiraNet, '/ajiranet/process')
+api.add_resource(NetworkManager, '/ajiranet/process')
 
 @app.errorhandler(ValidationError)
 def handle_validation_error(error):
