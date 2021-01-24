@@ -324,8 +324,8 @@ class TestAjiraNetwork(unittest.TestCase):
     def test_all(self):
         for testcase in testcases:
             response = requests.post('http://localhost:8080/ajiranet/process', data=testcase['command'])
-            # print(response.status_code)
-            # print(response.json())
+            print(response.status_code)
+            print(response.json())
             self.assertEqual(response.status_code, testcase['status'])
             self.assertDictEqual(response.json(), testcase['response'])
 

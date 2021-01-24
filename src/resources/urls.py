@@ -9,7 +9,7 @@ createUrls = [
         'uri' : r'^/devices$',
         'view': device.post,
         'headers': {
-            'content-type': 'application/json'
+            'content-type': ['application/json', 'application/x-www-form-urlencoded']
         },
         'data': ['type', 'name']
     },
@@ -17,7 +17,7 @@ createUrls = [
         'uri' : r'^/connections$',
         'view': connection.post,
         'headers': {
-            'content-type': 'application/json'
+            'content-type': ['application/json', 'application/x-www-form-urlencoded']
         },
         'data': ['source', 'targets']
     }
@@ -25,10 +25,10 @@ createUrls = [
 
 modifyUrls = [
     {
-        'uri' : r'^/devices/(?P<name>[A-Za-z_]\w+)/strength$',
+        'uri' : r'^/devices/(?P<name>[A-Za-z_]\w+)/(?P<modifier>[A-Za-z_]+)$',
         'view': device.put,
         'headers': {
-            'content-type': 'application/json'
+            'content-type': ['application/json', 'application/x-www-form-urlencoded']
         },
         'data': ['value']
     }
@@ -58,7 +58,7 @@ methodMatcher = {
     'MODIFY': {
         'uris': modifyUrls,
         'headers': {
-            'content-type': 'application/json'
+            'content-type': ['application/json', 'application/x-www-form-urlencoded']
         },
         'data': True
     },

@@ -1,4 +1,6 @@
 from flask import current_app
+from urllib import parse
+
 from .urls import methodMatcher
 from .validations import ValidationError
 
@@ -19,6 +21,17 @@ class RequestValidator:
         self.matchedURIObj = None
         self.uriParams = None
 
+    def parse_url_encoded_data(self):
+        requestData = {}
+        formData = parse.parse_qsl(self.requestBody)
+        for data in formData:
+            try:
+                formKey, formValue = data
+            except ValueError:
+                raise ValidationError('Invalid Command', 400)
+            requestData[formKey.strip()] = formValue.strip()
+        return requestData
+
     def validate_command_type(self):
         if self.commandType not in methodMatcher:
             raise ValidationError('Invalid Command', 400)
@@ -36,27 +49,36 @@ class RequestValidator:
     def validate_headers(self):
         for header in self.matchedURIObj['headers'].keys():
             if header not in self.requestHeaders or \
-                self.requestHeaders[header] != self.matchedURIObj['headers'][header]:
+                self.requestHeaders[header] not in self.matchedURIObj['headers'][header]:
                 raise ValidationError('Invalid Command', 400)
 
     def validate_body(self):
         requestData = None
         
-        if self.matchedURIObj['data'] and 'content-type' in self.requestHeaders and \
-            self.requestHeaders['content-type'] == 'application/json':
-            try:
-                requestData = json.loads(self.requestBody)
-                for data in self.matchedURIObj['data']:
-                    if data not in requestData:
-                        raise ValidationError('Invalid Command', 400)
-            except Exception as err:
-                raise ValidationError('Invalid Command', 400)
-
+        if self.matchedURIObj['data'] and 'content-type' in self.requestHeaders:
+            if self.requestHeaders['content-type'] == 'application/json':
+                try:
+                    requestData = json.loads(self.requestBody)
+                    # for data in self.matchedURIObj['data']:
+                    #     if data not in requestData:
+                    #         raise ValidationError('Invalid Command', 400)
+                except Exception as err:
+                    raise ValidationError('Invalid Command', 400)
+            elif self.requestHeaders['content-type'] == 'application/x-www-form-urlencoded':
+                # try:
+                print('application/x-www-form-urlencoded')
+                requestData = self.parse_url_encoded_data()
+                    # for data in self.matchedURIObj['data']:
+                    #     if data not in requestData:
+                    #         raise ValidationError('Invalid Command', 400)
+                # except Exception as err:
+                #     raise ValidationError('Invalid Command', 400)
+        print('parsed data', requestData)
         return requestData
 
     def validate(self):
         # Match the command Type
-        self.validate_command_type
+        self.validate_command_type()
         self.methodObj = methodMatcher[self.commandType]
 
         # finding the match with the respective URI

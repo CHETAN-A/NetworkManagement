@@ -26,12 +26,14 @@ class Devices:
             expected data: type('COMPUTER', 'REPEATER'), name(r'^[A-Za-z_]\w+$')
         """
         requestData = kwargs['data']
+        dataRequired = ('type', 'name')
 
         # Loads the network object to access the current nodes present in the network
         network = current_app.config['network']
 
         # Data Validations
         requestData['isAbsent'] = requestData['name']
+        validator.validate_required(*dataRequired, **requestData)
         validator.validate(**requestData)
 
         # Add the device into the network nodes list
@@ -45,6 +47,7 @@ class Devices:
             expected data: value(+ve int)
         """
         node = kwargs['uriParams']['name']
+        modifier = kwargs['uriParams']['modifier']
         requestData = kwargs['data']
 
         # Loads the network object to access the current nodes present in the network
@@ -52,13 +55,39 @@ class Devices:
         
         # Data Validations
         requestData['isPresent'] = node
-        validator.validate(**requestData)
+        if modifier == 'strength':
+            dataRequired = ('value',)
+            validator.validate_required(*dataRequired, **requestData)
+            validator.validate(**requestData)
 
-        # update the strength of the device node
-        network.updateStrength(node, requestData['value'])
+            # update the strength of the device node
+            network.updateStrength(node, requestData['value'])
+            msg = 'Successfully defined strength'
+            
+        elif modifier == 'firewall':
+
+            dataRequired = ('data',)
+            
+            validator.validate_required(*dataRequired, **requestData)
+            validator.validate(**requestData)
+            if isinstance(requestData['data'], str):
+                firewalls = requestData['data'].split(',')
+            else:
+                firewalls = requestData['data']
+            for nodeToBlock in firewalls:
+                validator.validate_name(nodeToBlock)
+                validator.validate_is_node_present(nodeToBlock)
+
+            for nodeToBlock in firewalls:
+                # print(nodeToBlock)
+                network.addFirewall(node, nodeToBlock)
+
+            # print(network.nodes['A1'])
+            # print(requestData)
+            msg = 'Successfully added Firewall'
 
         context = {
-            'msg': 'Successfully defined strength'
+            'msg': msg
         }
         return context, 200
 
@@ -69,14 +98,17 @@ class Connections:
             expected data: source(node), targets(list(nodes))
         """
         requestData = kwargs['data']
+        dataRequired = ('source', 'targets')
 
         # Loads the network object to access the current nodes present in the network
         network = current_app.config['network']
+        
+        # Data Validations
+        validator.validate_required(*dataRequired, **requestData)
 
         source = requestData['source']
         targets = requestData['targets']
-
-        # Data Validations
+        
         # To check if source type and pattern is valid
         if not isinstance(targets, list):
             raise ValidationError("Invalid targets type", 400)

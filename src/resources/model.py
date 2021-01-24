@@ -10,7 +10,8 @@ class NetworkDeviceManager:
         self.nodes[name] = {
             'type': nodeType,
             'strength': 0,
-            'connections': set()
+            'connections': set(),
+            'firewalls': set()
         }
 
     def isNodePresent(self, name):
@@ -35,6 +36,9 @@ class NetworkDeviceManager:
     def addConnection(self, node1, node2):
         self.nodes[node1]['connections'].add(node2)
         self.nodes[node2]['connections'].add(node1)
+
+    def addFirewall(self, source, target):
+        self.nodes[source]['firewalls'].add(target)
 
     def areNodesConnected(self, node1, node2):
         if node1 in self.nodes[node2]['connections']:
@@ -68,11 +72,10 @@ class NetworkDeviceManager:
             visitedNodes.add(node)
 
             if node == target:
-                routeFound = True
                 break
 
             for adjacentNode in self.nodes[node]['connections']:
-                if adjacentNode not in visitedNodes:
+                if adjacentNode not in visitedNodes and adjacentNode not in self.nodes[node]['firewalls']:
                     if self.nodes[adjacentNode]['type'] == 'REPEATER':
                         if distance[adjacentNode] > distance[node] + 1:
                             distance[adjacentNode] = distance[node] + 1
@@ -82,14 +85,16 @@ class NetworkDeviceManager:
                         predecessor[adjacentNode] = node
             noOfNodesVisited += 1
 
-        if routeFound:
-            path.append(target)
-            traverser = target
-            while predecessor[traverser] != -1:
-                path.insert(0, predecessor[traverser])
-                traverser = predecessor[traverser]
+        
+        path.append(target)
+        traverser = target
+        while predecessor[traverser] != -1:
+            path.insert(0, predecessor[traverser])
+            traverser = predecessor[traverser]
+            if traverser == source:
+                routeFound = True
 
-        return path
+        return path if routeFound else []
 
 
 def getMinDistanceNode(distance, visitedNodes):

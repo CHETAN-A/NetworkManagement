@@ -399,15 +399,18 @@ content-type : application/json\n \
 import os
 import time
 
-for testcase in testcases:
-    print("\n-----------------------------------------\n\n")
+# https://dev.to/getd/x-www-form-urlencoded-or-form-data-explained-in-2-mins-5hk6
+# for testcase in testcases:
+#     print("\n-----------------------------------------\n\n")
     
-    print(testcase['info'], end="\n\n")
-    # os.system('echo "## {}\n\n" >> testcases.md'.format(testcase['info']))
-    print('Command: \n' + testcase['command'], end="\n\n")
-    print("Response:\n\n")
-    # os.system('echo "{}\n\n" >> testcases.md '.format(testcase['command']))
-    os.system(testcase['command'])
+#     print(testcase['info'], end="\n\n")
+#     # os.system('echo "## {}\n\n" >> testcases.md'.format(testcase['info']))
+#     print('Command: \n' + testcase['command'], end="\n\n")
+#     print("Response:\n\n")
+#     # os.system('echo "{}\n\n" >> testcases.md '.format(testcase['command']))
+#     os.system(testcase['command'])
     
-    print("\n-----------------------------------------\n\n")
-    time.sleep(3)
+#     print("\n-----------------------------------------\n\n")
+#     time.sleep(3)
+
+os.system(testcases[-9]['command'])

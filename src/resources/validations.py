@@ -11,15 +11,20 @@ class NetworkValidation:
             'name': self.validate_name,
             'type': self.validate_type,
             'value': self.validate_value,
+            'firewall': self.validate_firewalls,
             'isPresent': self.validate_is_node_present,
             'isAbsent': self.validate_is_node_absent,
         }
     
     def validate(self, *args, **kwargs):
-        # print(kwargs)
         for key in kwargs.keys():
             if key in self.validate_data:
                 self.validate_data[key](kwargs[key])
+
+    def validate_required(self, *args, **kwargs):
+        for data in args:
+            if data not in kwargs:
+                raise ValidationError("Invalid Command", 400)
 
     def validate_name(self, name):
         if not isinstance(name, str) or\
@@ -33,6 +38,10 @@ class NetworkValidation:
     def validate_value(self, value):
         if not isinstance(value, int) or value < 0:
             raise ValidationError("value should be an +ve integer", 400)
+
+    def validate_firewalls(self, firewalls):
+        if not isinstance(firewalls, list) and not isinstance(firewalls, str):
+            raise ValidationError("Invalid type of data for firewall", 400)
 
     def validate_is_node_present(self, name):
         network = current_app.config['network']

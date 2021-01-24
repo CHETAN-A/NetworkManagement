@@ -15,6 +15,7 @@ class AjiraNet(Resource):
     def post(self):
         # print(request.get_data(as_text=True))
         requestPacket = request.get_data(as_text=True).split('\n')
+        print(requestPacket)
         requestPacketLen = len(requestPacket)
 
         # Getting the command type and command
